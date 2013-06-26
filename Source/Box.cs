@@ -30,7 +30,6 @@ namespace Motion {
             : this(mass, location, Vector.Zero, 0, 0, 1, width, height) { }
 
         public override void Update() {
-            base.Update();
             Vertices[0] = new Vector(-Width / 2, -Height / 2);
             Vertices[1] = new Vector(-Width / 2, Height / 2);
             Vertices[2] = new Vector(Width / 2, -Height / 2);
@@ -51,37 +50,36 @@ namespace Motion {
             Alpha = 0;
         }
 
-        public void Accelerate2(Entity entity, Vector point) {
-            Double cor = .5 * (Restitution + entity.Restitution);
-            Vector finalVelocity = (Mass * Velocity + entity.Mass * entity.Velocity + entity.Mass * cor * (entity.Velocity - Velocity)) / (Mass + entity.Mass);
-            Acceleration += finalVelocity - Velocity;
-
-            Double entityAM = Vector.CrossScalar(point - Location, entity.Mass * entity.Velocity);
-            Double selfAM = Vector.CrossScalar(Location - point, Mass * Velocity);
-
-            Double finalOmega = (selfAM + entityAM + entity.Moment * cor * (entity.Omega - Omega)) / (Moment + entity.Moment);
-            Console.WriteLine("am: " + entityAM);
-            Console.WriteLine("fo" + finalOmega);
-            Console.WriteLine("total moment" + (Moment + entity.Moment));
-            Alpha += finalOmega - Omega;
-        }
-
         public override void Accelerate(Entity entity, Vector point) {
             Acceleration -= Velocity;
             Alpha -= Omega;
             Double cor = .5 * (Restitution + entity.Restitution);
-            Vector relativeVelocity = entity.Velocity - Velocity;
+            Vector displacement = point - Location;
 
+            // Linear to linear momentum. 
+            Vector relativeVelocity = entity.Velocity - Velocity;
             Vector entityMomentum = entity.Mass * entity.Velocity;
             Vector selfMomentum = Mass * Velocity;
             Vector finalVelocity = (selfMomentum + entityMomentum + entity.Mass * cor * relativeVelocity) / (Mass + entity.Mass);
-            Acceleration += finalVelocity;
 
+            // Linear to angular momentum. 
+            Double entityLinearToAngular = Vector.CrossScalar(point - entity.Location, entity.Mass * entity.Velocity);
+            Double selfLinearToAngular = Vector.CrossScalar(point - Location, Mass * Velocity);
+            Double finalOmega = (selfLinearToAngular + entityLinearToAngular) / (Moment + entity.Moment);
+
+            // Angular to angular momentum. 
             Double relativeOmega = entity.Omega - Omega;
-            Double entityAngularMomentum = Vector.CrossScalar(point - Location, entity.Mass * entity.Velocity);
-            Double selfAngularMomentum = Vector.CrossScalar(Location - point, Mass * Velocity);
+            Double entityAngularMomentum = entity.Moment * entity.Omega / (point - entity.Location).Magnitude();
+            Double selfAngularMomentum = Moment * Omega / displacement.Magnitude();
+            //finalOmega += (selfAngularMomentum + entityAngularMomentum + entity.Moment * cor * relativeOmega) / (Moment + entity.Moment);
 
-            Double finalOmega = (selfAngularMomentum + entityAngularMomentum + entity.Moment * cor * relativeOmega) / (Moment + entity.Moment);
+            // Angular to linear momentum. 
+            Vector entityAngularToLinear = entityAngularMomentum * Vector.XAxis.Rotate(entity.Theta) / (point - Location).Magnitude();
+            Vector selfAngularToLinear = -selfAngularMomentum * Vector.XAxis.Rotate(Theta) / (point - Location).Magnitude();
+            Vector relativeAngularToLinear = entityAngularToLinear - selfAngularToLinear;
+            //finalVelocity += (selfAngularToLinear + entityAngularToLinear + entity.Mass * cor * relativeVelocity) / (Mass + entity.Mass);
+
+            Acceleration += finalVelocity;
             Alpha += finalOmega;
         }
 
@@ -92,6 +90,11 @@ namespace Motion {
                 Location -= toPointUnit;
                 relpoint = (point - Location).Rotate(-Theta);
             }
+        }
+
+        public override Boolean Contains(Vector point) {
+            Vector normPoint = (point - Location).Rotate(-Theta);
+            return Math.Abs(normPoint.X) <= Width / 2 && Math.Abs(normPoint.Y) <= Height / 2;
         }
 
         public override void Draw(Graphics g) {

@@ -97,11 +97,9 @@ namespace Motion {
         }
 
         public Vector Rotate(Double angle) {
-            Double m = Magnitude();
-            Double a = Math.Atan2(Y, X) + angle;
-            X = m * Math.Cos(a);
-            Y = m * Math.Sin(a);
-            return this;
+            Double magnitude = Magnitude();
+            Double rotation = Math.Atan2(Y, X) + angle;
+            return new Vector(magnitude * Math.Cos(rotation), magnitude * Math.Sin(rotation));
         }
 
         public Vector To(Vector a) {

@@ -2,7 +2,7 @@
 using System.Drawing;
 
 namespace Motion {
-    class Entity {
+    abstract class Entity {
         public Double Mass;
         public Double Moment;
         public Vector Location = Vector.Zero;
@@ -32,12 +32,14 @@ namespace Motion {
         public Entity(Double mass, Double moment, Vector location)
             : this(mass, moment, location, Vector.Zero, 0, 0, 1) { }
 
-        public virtual void Update() { }
+        public abstract void Update();
 
-        public virtual void Accelerate(Entity entity, Vector point) { }
+        public abstract void Accelerate(Entity entity, Vector point);
 
-        public virtual void Separate(Entity entity, Vector point) { }
+        public abstract void Separate(Entity entity, Vector point);
 
-        public virtual void Draw(Graphics g) { }
+        public abstract Boolean Contains(Vector point);
+
+        public abstract void Draw(Graphics g);
     }
 }

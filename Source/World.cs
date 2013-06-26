@@ -37,7 +37,7 @@ namespace Motion {
             entities[1] = new Box(100, new Vector(600, 220), new Vector(0, 0), .1, -.006, 1, 100, 200);
             /*/
             entities[0] = new Box(100, new Vector(200, 190), new Vector(2, 0), 100, 200);
-            entities[1] = new Box(100, new Vector(600, 350), new Vector(-2, 0), .1, -.0003, 1, 100, 200);
+            entities[1] = new Box(100, new Vector(600, 350), new Vector(-2, 0), .1, -.005, 1, 100, 200);
             //*/
         }
 
@@ -69,39 +69,33 @@ namespace Motion {
         }
 
         /// <summary>
-        /// Accelerates colliding Entities. 
+        /// Accelerates the given Entities if they have collided. 
         /// </summary>
         private void Accelerate(Entity a, Entity b) {
             if (a is Box && b is Box) {
                 Box c = a as Box;
                 Box d = b as Box;
 
-                Vector[] dvert = new Vector[4];
-                for (Int32 i = 0; i < d.Vertices.Length; i++)
-                    dvert[i] = (d.Vertices[i] - c.Location).Rotate(-c.Theta);
-                for (Int32 i = 0; i < d.Vertices.Length; i++)
-                    if (Math.Abs(dvert[i].X) <= c.Width / 2 && Math.Abs(dvert[i].Y) <= c.Height / 2) {
-                        c.Accelerate(d, d.Vertices[i]);
-                        d.Accelerate(c, d.Vertices[i]);
+                foreach (Vector vertice in c.Vertices)
+                    if (d.Contains(vertice)) {
+                        c.Accelerate(d, vertice);
+                        d.Accelerate(c, vertice);
                     }
             }
         }
 
         /// <summary>
-        /// Separates colliding Entities. 
+        /// Separates the given Entities if they have collided. 
         /// </summary>
         private void Separate(Entity a, Entity b) {
             if (a is Box && b is Box) {
                 Box c = a as Box;
                 Box d = b as Box;
 
-                Vector[] dvert = new Vector[4];
-                for (Int32 i = 0; i < d.Vertices.Length; i++)
-                    dvert[i] = (d.Vertices[i] - c.Location).Rotate(-c.Theta);
-                for (Int32 i = 0; i < d.Vertices.Length; i++)
-                    if (Math.Abs(dvert[i].X) <= c.Width / 2 && Math.Abs(dvert[i].Y) <= c.Height / 2) {
-                        c.Separate(d, d.Vertices[i]);
-                        d.Separate(c, d.Vertices[i]);
+                foreach (Vector vertice in c.Vertices)
+                    if (d.Contains(vertice)) {
+                        c.Separate(d, vertice);
+                        d.Separate(c, vertice);
                     }
             }
         }
